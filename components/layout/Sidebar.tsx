@@ -6,29 +6,34 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import type { UserRole } from '@/lib/auth'
 import {
   LayoutDashboard, ArrowLeftRight, Tag, Download,
-  Settings, LogOut, Wallet
+  Settings, LogOut, Wallet, Shield
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-
-const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/transactions', label: 'Transaksi', icon: ArrowLeftRight },
-  { href: '/categories', label: 'Kategori', icon: Tag },
-  { href: '/export', label: 'Export', icon: Download },
-  { href: '/settings', label: 'Pengaturan', icon: Settings },
-]
+import { Badge } from '@/components/ui/badge'
 
 interface SidebarProps {
   userName: string
   userEmail: string
+  userRole: UserRole
 }
 
-export default function Sidebar({ userName, userEmail }: SidebarProps) {
+export default function Sidebar({ userName, userEmail, userRole }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const navItems = [
+    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/transactions', label: 'Transaksi', icon: ArrowLeftRight },
+    { href: '/categories', label: 'Kategori', icon: Tag },
+    { href: '/export', label: 'Export', icon: Download },
+    ...(userRole === 'admin' ? [
+      { href: '/users', label: 'Users', icon: Shield },
+      { href: '/settings', label: 'Pengaturan', icon: Settings },
+    ] : []),
+  ]
 
   async function handleLogout() {
     const supabase = createClient()
@@ -76,7 +81,10 @@ export default function Sidebar({ userName, userEmail }: SidebarProps) {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
+              {userRole === 'admin' && <Badge variant="outline">Admin</Badge>}
+            </div>
             <p className="text-xs text-gray-500 truncate">{userEmail}</p>
           </div>
         </div>

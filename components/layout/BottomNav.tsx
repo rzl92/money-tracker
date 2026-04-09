@@ -3,18 +3,25 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard, ArrowLeftRight, Tag, Download, Settings } from 'lucide-react'
+import type { UserRole } from '@/lib/auth'
+import { LayoutDashboard, ArrowLeftRight, Tag, Download, Settings, Shield } from 'lucide-react'
 
-const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/transactions', label: 'Transaksi', icon: ArrowLeftRight },
-  { href: '/categories', label: 'Kategori', icon: Tag },
-  { href: '/export', label: 'Export', icon: Download },
-  { href: '/settings', label: 'Pengaturan', icon: Settings },
-]
+interface BottomNavProps {
+  userRole: UserRole
+}
 
-export default function BottomNav() {
+export default function BottomNav({ userRole }: BottomNavProps) {
   const pathname = usePathname()
+  const navItems = [
+    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/transactions', label: 'Transaksi', icon: ArrowLeftRight },
+    { href: '/categories', label: 'Kategori', icon: Tag },
+    { href: '/export', label: 'Export', icon: Download },
+    ...(userRole === 'admin' ? [
+      { href: '/users', label: 'Users', icon: Shield },
+      { href: '/settings', label: 'Pengaturan', icon: Settings },
+    ] : []),
+  ]
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">

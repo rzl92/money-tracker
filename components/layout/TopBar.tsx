@@ -1,10 +1,13 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { Wallet, LogOut } from 'lucide-react'
+import { Wallet, LogOut, Shield } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import type { UserRole } from '@/lib/auth'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,9 +19,10 @@ import {
 interface TopBarProps {
   userName: string
   userEmail: string
+  userRole: UserRole
 }
 
-export default function TopBar({ userName, userEmail }: TopBarProps) {
+export default function TopBar({ userName, userEmail, userRole }: TopBarProps) {
   const router = useRouter()
 
   async function handleLogout() {
@@ -48,9 +52,18 @@ export default function TopBar({ userName, userEmail }: TopBarProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-52">
           <div className="px-2 py-1.5">
-            <p className="text-sm font-medium">{userName}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">{userName}</p>
+              {userRole === 'admin' && <Badge variant="outline">Admin</Badge>}
+            </div>
             <p className="text-xs text-muted-foreground">{userEmail}</p>
           </div>
+          {userRole === 'admin' && (
+            <DropdownMenuItem render={<Link href="/users" />}>
+              <Shield className="w-4 h-4 mr-2" />
+              User Management
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
             <LogOut className="w-4 h-4 mr-2" />

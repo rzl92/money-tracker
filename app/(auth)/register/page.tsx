@@ -39,7 +39,7 @@ export default function RegisterPage() {
       return
     }
 
-    toast.success('Akun berhasil dibuat!', { description: 'Silakan cek email untuk verifikasi.' })
+    toast.success('Akun berhasil dibuat!', { description: 'Setelah email terverifikasi, akun akan menunggu persetujuan admin.' })
     router.push('/login')
   }
 

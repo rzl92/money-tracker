@@ -25,9 +25,40 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      toast.error('Login gagal', { description: 'Email atau password salah.' })
+      const isUnconfirmed = error.message.toLowerCase().includes('email not confirmed')
+      toast.error('Login gagal', {
+        description: isUnconfirmed
+          ? 'Email belum dikonfirmasi. Minta admin untuk mengaktifkan akun kamu.'
+          : 'Email atau password salah.',
+      })
       setLoading(false)
       return
+    }
+
+    const currentUserId = (await supabase.auth.getUser()).data.user?.id
+
+    if (currentUserId) {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('status')
+        .eq('id', currentUserId)
+        .maybeSingle()
+
+      const missingProfilesTable = profileError?.message?.includes("Could not find the table 'public.profiles'")
+
+      if (!missingProfilesTable) {
+        if (profile?.status === 'pending' || !profile) {
+          router.push('/pending')
+          router.refresh()
+          return
+        }
+
+        if (profile?.status === 'suspended') {
+          router.push('/suspended')
+          router.refresh()
+          return
+        }
+      }
     }
 
     router.push('/')

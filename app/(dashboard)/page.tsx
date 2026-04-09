@@ -68,32 +68,30 @@ export default function DashboardPage() {
           Array.from(catMap.values()).sort((a, b) => b.value - a.value).slice(0, 6)
         )
 
-        // Monthly data (last 6 months)
-        const months: MonthlyData[] = []
-        for (let i = 5; i >= 0; i--) {
-          const d = subMonths(new Date(), i)
-          const monthStr = format(d, 'yyyy-MM')
-          const monthLabel = format(d, 'MMM', { locale: localeId })
+        // Monthly data (last 6 months) — fetch semua paralel
+        const monthMetas = Array.from({ length: 6 }, (_, i) => {
+          const d = subMonths(new Date(), 5 - i)
+          return { monthStr: format(d, 'yyyy-MM'), label: format(d, 'MMM', { locale: localeId }), isCurrentMonth: i === 5 }
+        })
 
-          if (i === 0) {
-            months.push({ month: monthLabel, income, expense })
-          } else {
+        const monthlyResults = await Promise.all(
+          monthMetas.map(async ({ monthStr, label, isCurrentMonth }) => {
+            if (isCurrentMonth) return { month: label, income, expense }
             try {
               const r = await fetch(`/api/transactions?month=${monthStr}&limit=500`)
               const data: Transaction[] = await r.json()
-              if (Array.isArray(data)) {
-                months.push({
-                  month: monthLabel,
-                  income: data.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
-                  expense: data.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
-                })
+              if (!Array.isArray(data)) return { month: label, income: 0, expense: 0 }
+              return {
+                month: label,
+                income: data.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+                expense: data.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
               }
             } catch {
-              months.push({ month: monthLabel, income: 0, expense: 0 })
+              return { month: label, income: 0, expense: 0 }
             }
-          }
-        }
-        setMonthlyData(months)
+          })
+        )
+        setMonthlyData(monthlyResults)
       } catch {
         // silently fail
       } finally {
