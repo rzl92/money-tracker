@@ -29,9 +29,10 @@ export async function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register')
-  const isApiTelegram = pathname.startsWith('/api/telegram')
-  const isPublic = isAuthPage || isApiTelegram
+  const isApiRoute = pathname.startsWith('/api/')
+  const isPublic = isAuthPage || isApiRoute
 
+  // Untuk halaman (bukan API), redirect ke login jika belum auth
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
